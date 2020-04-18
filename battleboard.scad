@@ -25,7 +25,8 @@ module keygrid(h=1.6) {
     module mountingholes(h) {
         for (x=[0,1]) {
             for (y=[0,1]) {
-                translate([(keyspacing + keysize)/2 + (4 * keyspacing * x), (keyspacing + keysize)/2 + (2 * keyspacing * y), 0])
+                translate([(keyspacing + keysize)/2 + (4 * keyspacing * x), 
+                           (keyspacing + keysize)/2 + (2 * keyspacing * y), 0])
                     drillhole(r=1.2, h=h);
             }
         }
@@ -84,17 +85,20 @@ module buttoncluster(h=1.6, left=true) {
 }
 
 module plate(h=1.6, drilled=true) {
-
+    //1.6 mm steel
+    fillet_radius=5;
+    width=500;
+    height=100;
+    color("grey", 0.5)
     difference() {
         hull() {
-            translate([5, 5, -h/2])
-                cylinder(r=5.0, h=h);
-            translate([495, 5, -h/2])
-                cylinder(r=5.0, h=h);
-            translate([5, 95, -h/2])
-                cylinder(r=5.0, h=h);
-            translate([495, 95, -h/2])
-                cylinder(r=5.0, h=h);
+            for (x=[0,1]) {
+                for (y=[0,1]) {
+                    translate([((width - (2 * fillet_radius)) * x) + fillet_radius,
+                               ((height - (2 * fillet_radius)) * y) + fillet_radius, -h/2])
+                            cylinder(r=fillet_radius, h=h);
+                }
+            }
         };
 
 
@@ -113,9 +117,51 @@ module plate(h=1.6, drilled=true) {
     }
 }
 
+module top(h=5.588) {
+    //0.22 inch acrylic
+    width=700;
+    height=140;
+    outer_fillet_radius=5.0;
+    inner_fillet_radius=5.0;
+    plate_hole_width=490;
+    plate_hole_height=90;
+    color("blue", 0.5)    
+    difference() {
+        hull() {
+            translate([outer_fillet_radius, outer_fillet_radius, -h/2])
+                cylinder(r=outer_fillet_radius, h=h);
+            translate([width-outer_fillet_radius, outer_fillet_radius, -h/2])
+                cylinder(r=outer_fillet_radius, h=h);
+            translate([outer_fillet_radius, height-outer_fillet_radius, -h/2])
+                cylinder(r=outer_fillet_radius, h=h);
+            translate([width-outer_fillet_radius, height-outer_fillet_radius, -h/2])
+                cylinder(r=outer_fillet_radius, h=h);
+        };
+        
+        translate([(width - plate_hole_width) / 2, (height - plate_hole_height) / 2, 0])
+            hull() {
+                for (x=[0,1]) {
+                    for (y=[0,1]) {
+                        translate([((plate_hole_width - (2 * inner_fillet_radius)) * x) + inner_fillet_radius,
+                                   ((plate_hole_height - (2 * inner_fillet_radius)) * y) + inner_fillet_radius, -h])
+                                cylinder(r=inner_fillet_radius, h=2 * h);
+                    }
+                }
+            };
+    }
+}
+
 if (mode == "exportplate") {
     projection(cut=true) plate();
 }
+else if (mode == "exporttop") {
+    projection(cut=true) top();
+}
 else {
-    plate();
+    acrylic_thickness = 5.88;
+    steel_thickness = 1.6;
+    stack_fudge = 0.01;
+    translate([100, 20, -acrylic_thickness/2 - (steel_thickness/2) - stack_fudge])
+        plate(steel_thickness);
+    top(acrylic_thickness);
 }
