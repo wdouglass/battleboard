@@ -22,7 +22,7 @@ module keygrid(h=1.6) {
     module mountingholes(h) {
         for (x=[0,1]) {
             for (y=[0,1]) {
-                translate([(keyspacing + keysize)/2 + (4 * keyspacing * x), 
+                translate([(keyspacing + keysize)/2 + (4 * keyspacing * x),
                            (keyspacing + keysize)/2 + (2 * keyspacing * y), 0])
                     drillhole(r=1.2, h=h);
             }
@@ -39,6 +39,16 @@ module keygrid(h=1.6) {
         }
     };
 };
+
+module dogbone(size=[1, 1, 1], radius=0.2) {
+    cube(size=size);
+    offset=sqrt(pow(radius, 2)/2);
+    for (x=[offset, size[0] - offset]) {
+        for (y=[offset, size[1] - offset]) {
+            translate([x, y, 0]) cylinder(h=size[2], r=radius);
+        }
+    }
+}
 
 module jsmount(h=1.6) {
     //mount for HAPP style joystick (i think? measured these values from what i have...)

@@ -41,13 +41,13 @@ module box(width=700, height=140, depth=100, thickness=5.588) {
     inner_fillet_radius=5.0;
     plate_hole_width=490;
     plate_hole_height=90;
-    color("blue", 0.5) 
+    color("blue", 0.5)
     difference() {
         cube([width, height, depth]);
-        translate([thickness, thickness, thickness]) cube([width-(2 * thickness), 
-                                                           height-(2 * thickness), 
+        translate([thickness, thickness, thickness]) cube([width-(2 * thickness),
+                                                           height-(2 * thickness),
                                                            depth-(2 * thickness)]);
-        
+
         translate([(width - plate_hole_width) / 2, (height - plate_hole_height) / 2, 0])
             hull() {
                 for (x=[0,1]) {
@@ -70,11 +70,14 @@ if (mode == "exportplate") {
     projection(cut=true) plate();
 }
 else if (mode == "exporttop") {
-    
+
      projection(cut=true) translate([0,0,-(depth - (acrylic_thickness/2))]) box();
 }
-else {
+else if (mode == "default") {
     translate([100, 20, depth - acrylic_thickness - (steel_thickness/2) - stack_fudge])
         plate(steel_thickness);
     box(thickness=acrylic_thickness);
+}
+else {
+    assert(false, "Invalid rendering mode");
 }
