@@ -4,11 +4,11 @@ mode="default";
 
 use <components/holes.scad>
 
-module plate(h=1.6, drilled=true) {
+module plate(h=1.6, margin=10, xkeys=6, ykeys=4, drilled=true) {
     //1.6 mm steel
     fillet_radius=5;
-    width=500;
-    height=100;
+    width=(margin  * 2) + ((xkeys - 1) * 19.05 + 14);
+    height=(margin  * 2) + ((ykeys - 1) * 19.05 + 14);
     color("grey", 0.5)
     difference() {
         hull() {
@@ -23,16 +23,8 @@ module plate(h=1.6, drilled=true) {
 
 
         if (drilled) {
-            translate([0 + 114, 15, -h])
-                keygrid(2 * h);
-            translate([164 + 114, 15, -h])
-                keygrid(2 * h);
-            translate([410, 16, -h])
-                jsmount(2*h);
-            translate([60, 50, -h])
-                buttoncluster(2*h);
-            translate([250, 50, -h])
-                buttoncluster(2*h, false);
+            translate([margin, margin, -h])
+                keygrid(2 * h, xkeys, ykeys);
         }
     }
 }
