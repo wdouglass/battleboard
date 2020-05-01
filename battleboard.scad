@@ -1,6 +1,6 @@
 $fs = 0.01;
 
-mode="exporttop";
+mode="default";
 
 use <components/holes.scad>
 

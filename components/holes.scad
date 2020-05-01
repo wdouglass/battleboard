@@ -4,38 +4,38 @@ module drillhole(h,r,fn=180) {
     cylinder(h=h,r=r*fudge,$fn=fn);
 }
 
-module keygrid(h=1.6) {
+module keygrid(thickness=1.6, w=6, h=4) {
     keysize=14;
     keyspacing=19.05;
 
-    module key(h) {
+    module key(thickness) {
         hull() {
             for (x=[0,1]) {
                 for (y=[0,1]) {
                     translate([0.5 + (13 * x), 0.5 + (13 * y), 0])
-                        cylinder(r=0.5, h=h);
+                        cylinder(r=0.5, h=thickness);
                 };
             };
         };
     }
 
-    module mountingholes(h) {
+    module mountingholes(thickness) {
         for (x=[0,1]) {
             for (y=[0,1]) {
-                translate([(keyspacing + keysize)/2 + (4 * keyspacing * x),
-                           (keyspacing + keysize)/2 + (2 * keyspacing * y), 0])
-                    drillhole(r=1.2, h=h);
+                translate([(keyspacing + keysize)/2 + ((w-2) * keyspacing * x),
+                           (keyspacing + keysize)/2 + ((h-2) * keyspacing * y), 0])
+                    drillhole(r=1.2, h=thickness);
             }
         }
-        translate([(keyspacing + keysize)/2 + 2 * keyspacing, (keyspacing + keysize)/2 + keyspacing, 0])
-            drillhole(r=1.2, h=h);
+        translate([(keyspacing + keysize)/2 + floor((w-2)/2) * keyspacing, (keyspacing + keysize)/2 + keyspacing, 0])
+            drillhole(r=1.2, h=thickness);
     }
 
-    mountingholes(h);
-    for(x=[0:5]) {
-        for (y=[0:3]) {
+    mountingholes(thickness);
+    for(x=[0:w-1]) {
+        for (y=[0:h-1]) {
             translate([x * 19.05, y * 19.05, 0])
-                key(h);
+                key(thickness);
         }
     };
 };
