@@ -1,12 +1,34 @@
 
+include <keys.scad>
+
+function plateholesize(platemargin=10, xkeys=6, ykeys=4, overlap=5) = 
+    [((platemargin - overlap) * 2) + ((xkeys - 1) * keyspacing + keysize),
+     ((platemargin - overlap) * 2) + ((ykeys - 1) * keyspacing + keysize)];
+
+module platehole(thickness=1.6, r, platemargin=10, xkeys=6, ykeys=4, overlap=5) {
+    margin=platemargin - overlap;
+    size=plateholesize(platemargin, xkeys, ykeys, overlap);
+    width=size[0];
+    height=size[1];
+    
+    hull() {
+        for (x=[0,1]) {
+            for (y=[0,1]) {
+                translate([((width - (2 * r)) * x) + r,
+                           ((height - (2 * r)) * y) + r, -thickness / 2])
+                    cylinder(r=r, h=thickness);
+            }
+        }
+    };
+}
+
 module drillhole(h,r,fn=90) {
     fudge = (1+1/cos(180/fn))/2;
     cylinder(h=h,r=r*fudge,$fn=fn);
+    
 }
 
 module keygrid(thickness=1.6, w=6, h=4) {
-    keysize=14;
-    keyspacing=19.05;
 
     module key(thickness) {
         hull() {
