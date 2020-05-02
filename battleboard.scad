@@ -1,4 +1,3 @@
-$fs = 0.01;
 
 mode="default";
 

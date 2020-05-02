@@ -1,5 +1,5 @@
 
-module drillhole(h,r,fn=180) {
+module drillhole(h,r,fn=90) {
     fudge = (1+1/cos(180/fn))/2;
     cylinder(h=h,r=r*fudge,$fn=fn);
 }
@@ -13,7 +13,7 @@ module keygrid(thickness=1.6, w=6, h=4) {
             for (x=[0,1]) {
                 for (y=[0,1]) {
                     translate([0.5 + (13 * x), 0.5 + (13 * y), 0])
-                        cylinder(r=0.5, h=thickness);
+                        cylinder(r=0.5, h=thickness, $fn=32);
                 };
             };
         };
