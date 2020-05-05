@@ -8,8 +8,9 @@ use <components/holes.scad>
 module plate(h=1.6, margin=10, mountdistance=4, xkeys=6, ykeys=4, drilled=true) {
     //1.6 mm steel
     fillet_radius=2;
-    width=(margin * 2) + ((xkeys - 1) * keyspacing + keysize);
-    height=(margin * 2) + ((ykeys - 1) * keyspacing + keysize);
+    size = plateholesize(margin, xkeys, ykeys, overlap=0);
+    width=size[0];
+    height=size[1];
     color("grey", 0.5)
     difference() {
         hull() {
@@ -41,8 +42,10 @@ module plate(h=1.6, margin=10, mountdistance=4, xkeys=6, ykeys=4, drilled=true) 
 
 module box(width=700, height=140, depth=100, thickness=5.588) {
     inner_fillet_radius=5.0;
-    plate_hole_width=490;
-    plate_hole_height=90;
+    plate_hole_size=plateholesize();
+    plate_hole_width=plate_hole_size[0];
+    plate_hole_height=plate_hole_size[1];
+    spacing=200;
     color("blue", 0.5)
     difference() {
         cube([width, height, depth]);
@@ -50,7 +53,9 @@ module box(width=700, height=140, depth=100, thickness=5.588) {
                                                            height-(2 * thickness),
                                                            depth-(2 * thickness)]);
 
-        translate([(width - plate_hole_width) / 2, (height - plate_hole_height) / 2, depth - thickness/2])
+        translate([(width - plate_hole_width) / 2 - spacing/2, (height - plate_hole_height) / 2, depth - thickness/2])
+            platehole(r=inner_fillet_radius, thickness=thickness * 2);
+        translate([(width - plate_hole_width) / 2 + spacing/2, (height - plate_hole_height) / 2, depth - thickness/2])
             platehole(r=inner_fillet_radius, thickness=thickness * 2);
     }
 }
@@ -68,9 +73,18 @@ else if (mode == "exporttop") {
      projection(cut=true) translate([0,0,-(depth - (acrylic_thickness/2))]) box();
 }
 else if (mode == "default") {
-    translate([100, 20, depth - acrylic_thickness - (steel_thickness/2) - stack_fudge])
+    plate_size=plateholesize(overlap=0);
+    box_size=[700,140];
+    spacing=200;
+    translate([(box_size[0]-plate_size[0] - spacing)/2, 
+               (box_size[1]-plate_size[1])/2, 
+               depth - acrylic_thickness - (steel_thickness/2) - stack_fudge])
         plate(steel_thickness);
-    box(thickness=acrylic_thickness);
+    translate([(box_size[0]-plate_size[0] + spacing)/2, 
+               (box_size[1]-plate_size[1])/2, 
+               depth - acrylic_thickness - (steel_thickness/2) - stack_fudge])
+        plate(steel_thickness);
+    box(width=box_size[0], height=box_size[1], thickness=acrylic_thickness);
 }
 else {
     assert(false, "Invalid rendering mode");
