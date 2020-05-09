@@ -18,7 +18,7 @@ module plate(h=1.6, margin=10, mountdistance=4, xkeys=6, ykeys=4, drilled=true) 
                 for (y=[0,1]) {
                     translate([((width - (2 * fillet_radius)) * x) + fillet_radius,
                                ((height - (2 * fillet_radius)) * y) + fillet_radius, -h/2])
-                            cylinder(r=fillet_radius, h=h, $fs=0.1);
+                            cylinder(r=fillet_radius, h=h, $fs=1);
                 }
             }
         };
@@ -28,12 +28,12 @@ module plate(h=1.6, margin=10, mountdistance=4, xkeys=6, ykeys=4, drilled=true) 
             translate([margin, margin, -h])
                 keygrid(2 * h, xkeys, ykeys);
             //mounting holes
-            
+
             for (x=[0,1]) {
                 for (y=[0,1]) {
-                translate([mountdistance + (x * (width - (2 * mountdistance))), 
+                translate([mountdistance + (x * (width - (2 * mountdistance))),
                            mountdistance + (y * (height - (2 * mountdistance))), -h])
-                    cylinder(r=1.2, h=2*h, $fs=0.1);
+                    cylinder(r=1.2, h=2*h, $fs=1);
                 }
             }
         }
@@ -76,12 +76,12 @@ else if (mode == "default") {
     plate_size=plateholesize(overlap=0);
     box_size=[700,140];
     spacing=200;
-    translate([(box_size[0]-plate_size[0] - spacing)/2, 
-               (box_size[1]-plate_size[1])/2, 
+    translate([(box_size[0]-plate_size[0] - spacing)/2,
+               (box_size[1]-plate_size[1])/2,
                depth - acrylic_thickness - (steel_thickness/2) - stack_fudge])
         plate(steel_thickness);
-    translate([(box_size[0]-plate_size[0] + spacing)/2, 
-               (box_size[1]-plate_size[1])/2, 
+    translate([(box_size[0]-plate_size[0] + spacing)/2,
+               (box_size[1]-plate_size[1])/2,
                depth - acrylic_thickness - (steel_thickness/2) - stack_fudge])
         plate(steel_thickness);
     box(width=box_size[0], height=box_size[1], thickness=acrylic_thickness);
