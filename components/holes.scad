@@ -28,7 +28,7 @@ module drillhole(h,r,fn=90) {
 
 }
 
-module keygrid(thickness=1.6, w=6, h=4) {
+module keygrid(thickness=1.6, w=6, h=4, drilled=true) {
 
     module key(thickness) {
         hull() {
@@ -53,7 +53,8 @@ module keygrid(thickness=1.6, w=6, h=4) {
             drillhole(r=1.2, h=thickness);
     }
 
-    mountingholes(thickness);
+    if (drilled) mountingholes(thickness);
+
     for(x=[0:w-1]) {
         for (y=[0:h-1]) {
             translate([x * 19.05, y * 19.05, 0])
