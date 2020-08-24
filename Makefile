@@ -1,6 +1,6 @@
 
 
-all: plate.dxf top.dxf
+all: splittop.dxf splitbottom.dxf
 
 %.dxf: battleboard.scad
 	openscad -o $@ -D"mode=\"export$*\"" $<

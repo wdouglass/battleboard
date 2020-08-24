@@ -16,7 +16,7 @@ bendradius=0.5 + steel_thickness;
 platespacing = ((PI * (bendangle/180)) / (PI * bendradius)) + ((PI * (bendangle/180)) / (PI * (bendradius - steel_thickness)));
 bracketspacing = 4;
 
-module keyplate(h=1.6, margin=10, mountdistance=4, xkeys=6, ykeys=4, drilled=true, fillet_radius=2) {
+module keyplate(h=1.6, margin=10, mountdistance=4, xkeys=6, ykeys=4, drilled=true, fillet_radius=2, keys=true) {
     //1.6 mm steel
     size = plateholesize(margin, xkeys, ykeys, overlap=0);
     width=size[0];
@@ -33,10 +33,10 @@ module keyplate(h=1.6, margin=10, mountdistance=4, xkeys=6, ykeys=4, drilled=tru
             }
         };
 
-
-        translate([margin, margin, -h])
-            keygrid(2 * h, xkeys, ykeys, drilled);
-            
+        if (keys) {
+            translate([margin, margin, -h])
+                keygrid(2 * h, xkeys, ykeys, drilled);
+        }
         if (drilled) {
             //mounting holes
             for (x=[0,1]) {
@@ -161,6 +161,12 @@ else if (mode == "default") {
     for (y=[0,1]) {
         translate([0, (plate_size[1] + steel_thickness) * y, 0]) rotate([90, 0, 0]) side(bottom=cos(bendangle)*plate_size[0] * 2 + top_size[0], top=top_size[0], height=sin(bendangle) * plate_size[0], notches=(y == 1));
     }
+}
+else if (mode == "exportsplittop") {
+    projection(cut=true) keyplate(steel_thickness, mountdistance=bracketspacing);
+}
+else if (mode == "exportsplitbottom") {
+    projection(cut=true) keyplate(steel_thickness, mountdistance=bracketspacing, drilled=true, keys=false);
 }
 else {
     assert(false, "Invalid rendering mode");
