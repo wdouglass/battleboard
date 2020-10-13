@@ -35,7 +35,7 @@ module keygrid(thickness=1.6, w=6, h=4, drilled=true) {
             for (x=[0,1]) {
                 for (y=[0,1]) {
                     translate([0.5 + (13 * x), 0.5 + (13 * y), 0])
-                        cylinder(r=0.5, h=thickness, $fs=0.15);
+                        cylinder(r=0.5, h=thickness, $fs=0.5);
                 };
             };
         };

@@ -5,14 +5,14 @@ include <components/keys.scad>
 
 use <components/holes.scad>
 
-acrylic_thickness = 5.88;
+acrylic_thickness = 3.0;
 steel_thickness = 1.6;
 stack_fudge = 0.01;
 depth=100;
 plate_size=plateholesize(overlap=0);
 top_size = [220, plate_size[1]];
 bendangle=30.0;
-bendradius=0.5 + steel_thickness;
+bendradius=1.0 + steel_thickness;
 platespacing = ((PI * (bendangle/180)) / (PI * bendradius)) + ((PI * (bendangle/180)) / (PI * (bendradius - steel_thickness)));
 bracketspacing = 4;
 
@@ -52,7 +52,7 @@ module keyplate(h=1.6, margin=10, mountdistance=4, xkeys=6, ykeys=4, drilled=tru
 }
 
 module topplate(h=1.6, width, height,  mountdistance=4, drilled=true, fillet_radius=2) {
-    
+
     color("grey")
     difference() {
         hull() {
@@ -74,18 +74,20 @@ module topplate(h=1.6, width, height,  mountdistance=4, drilled=true, fillet_rad
                 }
             }
         }
-        
+
         translate([15, 15, -h]) jsmount(2 * h);
         translate([width * 3 / 4, height / 2, -h]) buttoncluster(2 * h);
     }
 
 }
 
-module side(h=1.6, bottom, top, height, fillet_radius=steel_thickness, notches=true) {
+module side(h=1.6, bottom, top, height, fillet_radius=steel_thickness, chin=10, notches=true) {
     linear_extrude(height=h) {
-        
+
         difference() {
             hull() {
+                translate([0, -chin, 0]) circle(r=fillet_radius, $fs=1);
+                translate([bottom, -chin, 0]) circle(r=fillet_radius, $fs=1);
                 translate([0, 0, 0]) circle(r=fillet_radius, $fs=1);
                 translate([bottom, 0, 0]) circle(r=fillet_radius, $fs=1);
                 translate([(bottom - top)/2, height, 0]) circle(r=fillet_radius, $fs=1);
@@ -107,11 +109,11 @@ module side(h=1.6, bottom, top, height, fillet_radius=steel_thickness, notches=t
 
 if (mode == "exportplate") {
     projection(cut=true) union() {
-        keyplate(steel_thickness, mountdistance=bracketspacing);
+        keyplate(steel_thickness, mountdistance=bracketspacing, drilled=false);
         translate([plate_size[0] + platespacing, 0, 0])
-            topplate(width=top_size[0], height=top_size[1]);
+            topplate(width=top_size[0], height=top_size[1], drilled=false);
         translate([plate_size[0] + top_size[0] + (platespacing * 2), 0, 0])
-            keyplate(steel_thickness, mountdistance=bracketspacing);
+            keyplate(steel_thickness, mountdistance=bracketspacing, drilled=false);
     }
     //connective tissue
     for (x=[0,1]) {
@@ -125,19 +127,20 @@ if (mode == "exportplate") {
 
 }
 else if (mode == "default") {
-    translate([0, 0, 0]) 
-        rotate([0, -bendangle, 0]) 
-	translate([0, 0, bendradius - (steel_thickness/2)])
+
+    translate([0, 0, 0])
+        rotate([0, -bendangle, 0])
+    translate([0, 0, bendradius - (steel_thickness/2)])
         keyplate(steel_thickness, mountdistance=bracketspacing);
-    translate([cos(bendangle) * plate_size[0] + top_size[0], 0, sin(bendangle) * plate_size[0]]) 
+    translate([cos(bendangle) * plate_size[0] + top_size[0], 0, sin(bendangle) * plate_size[0]])
         rotate([0, bendangle, 0])
 	translate([0, 0, bendradius - (steel_thickness/2)])
         keyplate(steel_thickness, mountdistance=bracketspacing);
 
 
     translate([cos(bendangle) * plate_size[0], 0, sin(bendangle) * plate_size[0] + bendradius - (steel_thickness/2)])
-        topplate(width=top_size[0], height=top_size[1]);
-	
+        topplate(steel_thickness, width=top_size[0], height=top_size[1]);
+
 
     for (x=[0,1]) {
         for (y=[0,1]) {
@@ -146,16 +149,19 @@ else if (mode == "default") {
 		      sin(bendangle) * plate_size[0]])
 		      rotate([90, 0, 0])
 		          difference() {
-		          cylinder(r=bendradius, h=7, center=true, $fs=0.1);
-		          cylinder(r=bendradius - steel_thickness, h=8, center=true, $fs=0.1);
-			  translate([0, 0, -5])
-			      mirror([x,0,0])
-                              rotate([0, 0, 210])
-			      translate([0, -(bendradius-steel_thickness), 0])			      
-			      cube([10, 10, 10]);
-			      
-			  translate([-10 * x, -10 + (bendradius - steel_thickness), -5]) cube([10, 10, 10]);}
-		      
+		          cylinder(r=bendradius, h=7, center=true, $fs=0.2);
+                  cylinder(r=bendradius - steel_thickness, h=8, center=true, $fs=0.2);
+                  translate([0, 0, -5])
+                      mirror([x,0,0])
+                      rotate([0, 0, 210])
+                      translate([0, -(bendradius-steel_thickness), 0])
+                      cube([10, 10, 10]);
+
+                  translate([-10 * x, -10 + (bendradius - steel_thickness), -5])
+                      cube([10, 10, 10]);
+
+        }
+
 	}
     }
     for (y=[0,1]) {
