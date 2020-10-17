@@ -4,6 +4,7 @@ mode="default";
 include <components/keys.scad>
 
 use <components/holes.scad>
+use <components/bracket.scad>
 
 acrylic_thickness = 3.0;
 steel_thickness = 1.6;
@@ -11,12 +12,14 @@ stack_fudge = 0.01;
 depth=100;
 plate_size=plateholesize(overlap=0);
 top_size = [220, plate_size[1]];
-bendangle=30.0;
+bendangle=30;
 bendradius=1.0 + steel_thickness;
 platespacing = ((PI * (bendangle/180)) / (PI * bendradius)) + ((PI * (bendangle/180)) / (PI * (bendradius - steel_thickness)));
-bracketspacing = 4;
+bracketspacing = 5;
+platemargin = 10;
+columns = 6;
 
-module keyplate(h=1.6, margin=10, mountdistance=4, xkeys=6, ykeys=4, drilled=true, fillet_radius=2, keys=true) {
+module keyplate(h=1.6, margin=platemargin, mountdistance=4, xkeys=columns, ykeys=4, drilled=true, fillet_radius=2, keys=true) {
     //1.6 mm steel
     size = plateholesize(margin, xkeys, ykeys, overlap=0);
     width=size[0];
@@ -137,7 +140,11 @@ else if (mode == "default") {
 	translate([0, 0, bendradius - (steel_thickness/2)])
         keyplate(steel_thickness, mountdistance=bracketspacing);
 
-
+    #translate([bracketspacing * cos(bendangle), 0, bracketspacing * sin(bendangle)]) rotate([-90, 90 - bendangle, 0]) bracket();
+    #translate([(plate_size[0] - bracketspacing) * cos(bendangle), 0, (plate_size[0] - bracketspacing) * sin(bendangle)]) rotate([-90, 90 - bendangle, 0]) bracket();
+    #translate([0, plate_size[1], 0]) translate([bracketspacing * cos(bendangle), 0, bracketspacing * sin(bendangle)]) rotate([90, 90 - bendangle, 0]) bracket();
+    #translate([0, plate_size[1], 0]) translate([(plate_size[0] - bracketspacing) * cos(bendangle), 0, (plate_size[0] - bracketspacing) * sin(bendangle)]) rotate([90, 90 - bendangle, 0]) bracket();
+    
     translate([cos(bendangle) * plate_size[0], 0, sin(bendangle) * plate_size[0] + bendradius - (steel_thickness/2)])
         topplate(steel_thickness, width=top_size[0], height=top_size[1]);
 
