@@ -84,7 +84,7 @@ module topplate(h=1.6, width, height,  mountdistance=4, drilled=true, fillet_rad
 
 }
 
-module side(h=1.6, bottom, top, height, fillet_radius=steel_thickness, chin=10, notches=true) {
+module side(h=1.6, bottom, top, height, fillet_radius=steel_thickness, chin=20, notches=true) {
     linear_extrude(height=h) {
 
         difference() {
@@ -140,11 +140,17 @@ else if (mode == "default") {
 	translate([0, 0, bendradius - (steel_thickness/2)])
         keyplate(steel_thickness, mountdistance=bracketspacing);
 
-    #translate([bracketspacing * cos(bendangle), 0, bracketspacing * sin(bendangle)]) rotate([-90, 90 - bendangle, 0]) bracket();
-    #translate([(plate_size[0] - bracketspacing) * cos(bendangle), 0, (plate_size[0] - bracketspacing) * sin(bendangle)]) rotate([-90, 90 - bendangle, 0]) bracket();
-    #translate([0, plate_size[1], 0]) translate([bracketspacing * cos(bendangle), 0, bracketspacing * sin(bendangle)]) rotate([90, 90 - bendangle, 0]) bracket();
-    #translate([0, plate_size[1], 0]) translate([(plate_size[0] - bracketspacing) * cos(bendangle), 0, (plate_size[0] - bracketspacing) * sin(bendangle)]) rotate([90, 90 - bendangle, 0]) bracket();
-    
+    for (x=[0,1]) {
+        for (y=[0,1]) {
+            xdistance=((x * plate_size[0])  +
+             (1 - (2 * x)) * bracketspacing);
+            ydistance=y * plate_size[1];
+            #translate([xdistance * cos(bendangle),
+                                 ydistance, 
+                                 xdistance * sin(bendangle)]) 
+                rotate([-90 + (y * 180), 90 - bendangle, 0]) bracket();
+        }
+    }    
     translate([cos(bendangle) * plate_size[0], 0, sin(bendangle) * plate_size[0] + bendradius - (steel_thickness/2)])
         topplate(steel_thickness, width=top_size[0], height=top_size[1]);
 
