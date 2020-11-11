@@ -4,7 +4,7 @@ mode="default";
 include <components/keys.scad>
 
 use <components/holes.scad>
-use <components/bracket.scad>
+include <components/bracket.scad>
 
 acrylic_thickness = 3.0;
 steel_thickness = 1.6;
@@ -15,7 +15,7 @@ top_size = [220, plate_size[1]];
 bendangle=30;
 bendradius=1.0 + steel_thickness;
 platespacing = ((PI * (bendangle/180)) / (PI * bendradius)) + ((PI * (bendangle/180)) / (PI * (bendradius - steel_thickness)));
-bracketspacing = 5;
+bracketspacing = bracket_short;
 platemargin = 10;
 columns = 6;
 
@@ -47,7 +47,7 @@ module keyplate(h=1.6, margin=platemargin, mountdistance, xkeys=columns, ykeys=4
                 translate([mountdistance + (x * (width - (2 * mountdistance))),
                            mountdistance + (y * (height - (2 * mountdistance))), -h])
                     //3.26 diameter for 4-40 screws
-                    cylinder(d=3.26, h=2*h, $fs=1);
+                    cylinder(d=3.45, h=2*h, $fs=1);
                 }
             }
         }
@@ -98,7 +98,7 @@ module topplate(h=1.6, width, height, mountdistancex, mountdistancey, drilled=tr
                 for (y=[0,1]) {
                     translate([mountdistancex + (x * ((width - (2 * mountdistancex)) /2)),
                                     mountdistancey + (y * (height - (2 * mountdistancey))), -h])
-                        cylinder(d=3.26, h=2*h, $fs=1);
+                        cylinder(d=3.45, h=2*h, $fs=1);
                 }
             }
         }
@@ -132,7 +132,8 @@ module topplate_with_brackets(h=1.6, width, height,  mountdistancex=bracketspaci
     }
 }
 
-module side(h=1.6, bottom, top, height, fillet_radius=steel_thickness, chin=20, notches=true) {
+module side(h=1.6, bottom, top, height, fillet_radius=steel_thickness, chin=20, notches=true, drilled=true) {
+    color("grey")
     linear_extrude(height=h) {
 
         difference() {
@@ -154,6 +155,20 @@ module side(h=1.6, bottom, top, height, fillet_radius=steel_thickness, chin=20, 
                     square(14, center=true);
 
             };
+            if (drilled) {
+
+                for (side=[0,1]) {
+                    translate([side * bottom, 0]) scale([1 - (2 * side), 1, 1]) rotate([0, 0, bendangle]) for (x=[0,1]) {
+                            translate([(plate_size[0] * x) + ((1 + (-2 * x)) * bracketspacing),
+                                        -bracket_long]) circle(d=3.45, $fs=1);
+                    }
+                }
+                for (x=[-1, 0, 1]) {
+                    translate([bottom / 2 + (x * (top / 2)) - (x * (bracketspacing + 2)),
+                               height - bracket_long])
+                        circle(d=3.45, $fs=1);
+                }
+            }
         };
     };
 }

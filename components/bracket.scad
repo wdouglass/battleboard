@@ -1,6 +1,8 @@
 bracket_size = [9.3, 6.2, 8.7];
 steel_thickness = 1.6;
 drill_offset = bracket_size[1] / 2;
+bracket_short=5;
+bracket_long=6.1;
 
 module bracket() {
     translate([0, -drill_offset, 0]) {
