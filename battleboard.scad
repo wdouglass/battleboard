@@ -19,7 +19,7 @@ bracketspacing = 5;
 platemargin = 10;
 columns = 6;
 
-module keyplate(h=1.6, margin=platemargin, mountdistance=4, xkeys=columns, ykeys=4, drilled=true, fillet_radius=2, keys=true) {
+module keyplate(h=1.6, margin=platemargin, mountdistance, xkeys=columns, ykeys=4, drilled=true, fillet_radius=2, keys=true) {
     //1.6 mm steel
     size = plateholesize(margin, xkeys, ykeys, overlap=0);
     width=size[0];
@@ -55,7 +55,7 @@ module keyplate(h=1.6, margin=platemargin, mountdistance=4, xkeys=columns, ykeys
 }
 
 
-module keyplate_with_brackets(h=1.6, margin=platemargin, mountdistance=4, xkeys=columns, ykeys=4, drilled=true, fillet_radius=2, keys=true) {
+module keyplate_with_brackets(h=1.6, margin=platemargin, mountdistance=bracketspacing, xkeys=columns, ykeys=4, drilled=true, fillet_radius=2, keys=true) {
     union() {
         keyplate(h, margin, mountdistance, xkeys, ykeys, drilled, fillet_radius, keys);
 
@@ -79,7 +79,7 @@ module keyplate_with_brackets(h=1.6, margin=platemargin, mountdistance=4, xkeys=
 }
 
 
-module topplate(h=1.6, width, height,  mountdistance=4, drilled=true, fillet_radius=2) {
+module topplate(h=1.6, width, height, mountdistancex, mountdistancey, drilled=true, fillet_radius=2) {
 
     color("grey")
     difference() {
@@ -96,17 +96,40 @@ module topplate(h=1.6, width, height,  mountdistance=4, drilled=true, fillet_rad
         if (drilled) {
             for (x=[0,1,2]) {
                 for (y=[0,1]) {
-                    translate([mountdistance + (x * ((width - (2 * mountdistance)) /2)),
-                                    mountdistance + (y * (height - (2 * mountdistance))), -h])
+                    translate([mountdistancex + (x * ((width - (2 * mountdistancex)) /2)),
+                                    mountdistancey + (y * (height - (2 * mountdistancey))), -h])
                         cylinder(d=3.26, h=2*h, $fs=1);
                 }
             }
         }
 
-        translate([15, 15, -h]) jsmount(2 * h);
+        translate([20, 15, -h])     jsmount(2 * h);
         translate([width * 3 / 4, height / 2, -h]) buttoncluster(2 * h);
     }
 
+}
+
+module topplate_with_brackets(h=1.6, width, height,  mountdistancex=bracketspacing+2, mountdistancey=bracketspacing, drilled=true, fillet_radius=2) {
+    union() {
+        topplate(h, width, height, mountdistancex, mountdistancey, drilled, fillet_radius);
+
+        //add brackets so we can easily line up our holes
+        for (x=[-1, 0, 1]) {
+            for (y=[0,1]) {
+                xdistance=(x * ((width/2) - mountdistancex));
+                ydistance=y * plate_size[1];
+                rotate([0, 0, 0])
+                translate([width/2 + xdistance,
+                           ydistance,
+                            - steel_thickness])
+
+                    //rotate([180, 0, 90 + y * 180])
+                    rotate([0, 90, 90 + y * 180])
+                    bracket();
+
+            }
+        }
+    }
 }
 
 module side(h=1.6, bottom, top, height, fillet_radius=steel_thickness, chin=20, notches=true) {
@@ -139,7 +162,7 @@ if (mode == "exportplate") {
     projection(cut=true) union() {
         keyplate(steel_thickness, mountdistance=bracketspacing, drilled=false);
         translate([plate_size[0] + platespacing, 0, 0])
-            topplate(width=top_size[0], height=top_size[1], drilled=false);
+            topplate_with_brackets(width=top_size[0], height=top_size[1], drilled=false, mountdistance);
         translate([plate_size[0] + top_size[0] + (platespacing * 2), 0, 0])
             keyplate(steel_thickness, mountdistance=bracketspacing, drilled=false);
     }
@@ -181,7 +204,7 @@ else if (mode == "default") {
         }
     }
     translate([cos(bendangle) * plate_size[0], 0, sin(bendangle) * plate_size[0] + bendradius - (steel_thickness/2)])
-        topplate(steel_thickness, width=top_size[0], height=top_size[1]);
+        topplate_with_brackets(steel_thickness, width=top_size[0], height=top_size[1]);
 
 
     for (x=[0,1]) {
