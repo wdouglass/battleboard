@@ -54,6 +54,31 @@ module keyplate(h=1.6, margin=platemargin, mountdistance=4, xkeys=columns, ykeys
     }
 }
 
+
+module keyplate_with_brackets(h=1.6, margin=platemargin, mountdistance=4, xkeys=columns, ykeys=4, drilled=true, fillet_radius=2, keys=true) {
+    union() {
+        keyplate(h, margin, mountdistance, xkeys, ykeys, drilled, fillet_radius, keys);
+
+        //add brackets so we can easily line up our holes
+        for (x=[0,1]) {
+            for (y=[0,1]) {
+                xdistance=(x * plate_size[0]);
+                ydistance=y * plate_size[1];
+                rotate([0, 0, 0])
+                translate([xdistance + (1 - (2 * x)) * mountdistance,
+                           ydistance,
+                            - steel_thickness])
+
+                    //rotate([180, 0, 90 + y * 180])
+                    rotate([0, 90, 90 + y * 180])
+                    bracket();
+
+            }
+        }
+    }
+}
+
+
 module topplate(h=1.6, width, height,  mountdistance=4, drilled=true, fillet_radius=2) {
 
     color("grey")
@@ -130,27 +155,31 @@ if (mode == "exportplate") {
 
 }
 else if (mode == "default") {
-
+    tx=cos(bendangle) * plate_size[0] + top_size[0];
+    tz=sin(bendangle) * plate_size[0];
     translate([0, 0, 0])
         rotate([0, -bendangle, 0])
     translate([0, 0, bendradius - (steel_thickness/2)])
-        keyplate(steel_thickness, mountdistance=bracketspacing);
-    translate([cos(bendangle) * plate_size[0] + top_size[0], 0, sin(bendangle) * plate_size[0]])
+        keyplate_with_brackets(steel_thickness, mountdistance=bracketspacing);
+    translate([tx, 0, tz])
         rotate([0, bendangle, 0])
 	translate([0, 0, bendradius - (steel_thickness/2)])
-        keyplate(steel_thickness, mountdistance=bracketspacing);
+        keyplate_with_brackets(steel_thickness, mountdistance=bracketspacing);
+
 
     for (x=[0,1]) {
         for (y=[0,1]) {
-            xdistance=((x * plate_size[0])  +
-             (1 - (2 * x)) * bracketspacing);
-            ydistance=y * plate_size[1];
-            #translate([xdistance * cos(bendangle),
-                                 ydistance, 
-                                 xdistance * sin(bendangle)]) 
-                rotate([-90 + (y * 180), 90 - bendangle, 0]) bracket();
+            for (side=[0, 1]) {
+                xdistance=((x * plate_size[0])  +
+                    (1 - (2 * x)) * bracketspacing);
+                ydistance=y * plate_size[1];
+                translate([xdistance * cos(bendangle),
+                           ydistance,
+                           xdistance * sin(bendangle)])
+                    rotate([-90 + (y * 180), 90 - bendangle, 0]) bracket();
+            }
         }
-    }    
+    }
     translate([cos(bendangle) * plate_size[0], 0, sin(bendangle) * plate_size[0] + bendradius - (steel_thickness/2)])
         topplate(steel_thickness, width=top_size[0], height=top_size[1]);
 
