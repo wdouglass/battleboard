@@ -164,8 +164,11 @@ module side(h=1.6, bottom, top, height, fillet_radius=steel_thickness, chin=20, 
                     }
                 }
                 for (x=[-1, 0, 1]) {
-                    translate([bottom / 2 + (x * (top / 2)) - (x * (bracketspacing + 2)),
+                     translate([bottom / 2 + (x * (top / 2)) - (x * (bracketspacing + 2)),
                                height - bracket_long])
+                        circle(d=3.45, $fs=1);
+                     translate([bottom / 2 + (x * (bottom / 2)) - (x * bracketspacing),
+                               bracket_short - chin])
                         circle(d=3.45, $fs=1);
                 }
             }
@@ -173,28 +176,64 @@ module side(h=1.6, bottom, top, height, fillet_radius=steel_thickness, chin=20, 
     };
 }
 
-if (mode == "exportplate") {
-    projection(cut=true) union() {
-        keyplate(steel_thickness, mountdistance=bracketspacing, drilled=false);
-        translate([plate_size[0] + platespacing, 0, 0])
-            topplate_with_brackets(width=top_size[0], height=top_size[1], drilled=false, mountdistance);
-        translate([plate_size[0] + top_size[0] + (platespacing * 2), 0, 0])
-            keyplate(steel_thickness, mountdistance=bracketspacing, drilled=false);
-    }
-    //connective tissue
-    for (x=[0,1]) {
-        for (y=[0,1]) {
-            translate([plate_size[0] + (platespacing / 2) + (x * (top_size[0] + (platespacing / 2))),
-	              (plate_size[1] * (y + 1)) / 3,
-		      0])
-	        square(size=7, center=true);
+module bottom(h=1.6, mountdistancex, mountdistancey, width, height, fillet_radius=steel_thickness, drilled=true) {
+    color("grey")
+    linear_extrude(height=h) {
+
+        difference() {
+            hull() {
+                
+                for (x=[0,1]) {
+                    for (y=[0,1]) {
+                        translate([((width - (2 * fillet_radius)) * x) + fillet_radius,
+                                ((height - (2 * fillet_radius)) * y) + fillet_radius, -h/2])
+                                circle(r=fillet_radius, $fs=1);
+                    }
+                }
+            };
+            if (drilled) {
+
+            for (x=[0,1,2]) {
+                for (y=[0,1]) {
+                    translate([mountdistancex + (x * ((width - (2 * mountdistancex)) /2)),
+                                    mountdistancey + (y * (height - (2 * mountdistancey))), -h])
+                        circle(d=3.45, $fs=1);
+                }
+            }
+        }
+        };
+    };
+}
+
+
+module bottom_with_brackets(h=1.6, width, height,  mountdistancex=bracketspacing, mountdistancey=bracketspacing+2, drilled=true, fillet_radius=2) {
+    union() {
+        bottom(h, mountdistancex, mountdistancey, width, height, fillet_radius, drilled);
+
+        //add brackets so we can easily line up our holes
+        for (x=[-1, 0, 1]) {
+            for (y=[0,1]) {
+                xdistance=(x * ((width/2) - mountdistancex));
+                ydistance=y * plate_size[1];
+                rotate([0, 0, 0])
+                translate([width/2 + xdistance,
+                           ydistance,
+                            steel_thickness])
+
+                    //rotate([180, 0, 90 + y * 180])
+                    rotate([0, 0, 90 + y * 180])
+                    bracket();
+
+            }
         }
     }
-
 }
-else if (mode == "default") {
+
+
+if (mode == "default") {
     tx=cos(bendangle) * plate_size[0] + top_size[0];
     tz=sin(bendangle) * plate_size[0];
+    
     translate([0, 0, 0])
         rotate([0, -bendangle, 0])
     translate([0, 0, bendradius - (steel_thickness/2)])
@@ -203,9 +242,16 @@ else if (mode == "default") {
         rotate([0, bendangle, 0])
 	translate([0, 0, bendradius - (steel_thickness/2)])
         keyplate_with_brackets(steel_thickness, mountdistance=bracketspacing);
+    
+    
+    translate([0, 0, -20 - steel_thickness]) 
+        bottom_with_brackets(steel_thickness, 
+                             mountdistancex=bracketspacing,  
+                             mountdistancey=bracketspacing + 1.1, 
+                             width=cos(bendangle)*plate_size[0] * 2 + top_size[0], 
+                             height=plate_size[1], drilled=true);
 
-
-    for (x=[0,1]) {
+   for (x=[0,1]) {
         for (y=[0,1]) {
             for (side=[0, 1]) {
                 xdistance=((x * plate_size[0])  +
@@ -222,37 +268,28 @@ else if (mode == "default") {
         topplate_with_brackets(steel_thickness, width=top_size[0], height=top_size[1]);
 
 
-    for (x=[0,1]) {
-        for (y=[0,1]) {
-	    color("grey") translate([cos(bendangle) * plate_size[0]  + (x * (top_size[0])),
-                      (plate_size[1] * (y + 1)) / 3,
-		      sin(bendangle) * plate_size[0]])
-		      rotate([90, 0, 0])
-		          difference() {
-		          cylinder(r=bendradius, h=7, center=true, $fs=0.2);
-                  cylinder(r=bendradius - steel_thickness, h=8, center=true, $fs=0.2);
-                  translate([0, 0, -5])
-                      mirror([x,0,0])
-                      rotate([0, 0, 210])
-                      translate([0, -(bendradius-steel_thickness), 0])
-                      cube([10, 10, 10]);
-
-                  translate([-10 * x, -10 + (bendradius - steel_thickness), -5])
-                      cube([10, 10, 10]);
-
-        }
-
-	}
-    }
     for (y=[0,1]) {
         translate([0, (plate_size[1] + steel_thickness) * y, 0]) rotate([90, 0, 0]) side(bottom=cos(bendangle)*plate_size[0] * 2 + top_size[0], top=top_size[0], height=sin(bendangle) * plate_size[0], notches=(y == 1));
     }
+    
 }
-else if (mode == "exportsplittop") {
+else if (mode == "exportkeyplate") {
     projection(cut=true) keyplate(steel_thickness, mountdistance=bracketspacing);
+}
+else if (mode == "exportarcadeplate") {
+    projection(cut=true) topplate(steel_thickness, width=top_size[0], height=top_size[1], mountdistancex=bracketspacing, mountdistancey=bracketspacing+2);    
 }
 else if (mode == "exportsplitbottom") {
     projection(cut=true) keyplate(steel_thickness, mountdistance=bracketspacing, drilled=true, keys=false);
+}
+else if (mode == "exportbottom") {
+    projection(cut=true) bottom(steel_thickness, mountdistancex=bracketspacing, mountdistancey=bracketspacing+1.1, width=cos(bendangle)*plate_size[0] * 2 + top_size[0], height=plate_size[1]);
+}
+else if (mode == "exportfront") {
+    projection(cut=true) side(bottom=cos(bendangle)*plate_size[0] * 2 + top_size[0], top=top_size[0], height=sin(bendangle) * plate_size[0], notches=false);
+}
+else if (mode == "exportback") {
+    projection(cut=true) side(bottom=cos(bendangle)*plate_size[0] * 2 + top_size[0], top=top_size[0], height=sin(bendangle) * plate_size[0], notches=true);
 }
 else {
     assert(false, "Invalid rendering mode");
